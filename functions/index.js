@@ -110,4 +110,39 @@ app.post("/signup", (req, res) => {
     });
 });
 
+app.post("/login", (req, res) => {
+  const user = {
+    email: req.body.email,
+    password: req.body.password
+  };
+  let errors = {};
+
+  const isEmpty = string => {
+    if (string.trim() === "") return true;
+    else return false;
+  };
+
+  if (isEmpty(user.email)) {
+    errors.email = "Must not be empty";
+  }
+  if (isEmpty(user.password)) {
+    errors.password = "Must not be empty!";
+  }
+
+  if (Object.keys(errors).length > 0) return res.status(400).json(errors);
+
+  firebase
+    .auth()
+    .signInWithEmailAndPassword(user.email, user.password)
+    .then(data => {
+      return data.user.getIdToken();
+    })
+    .then(token => {
+      return res.json({ token });
+    })
+    .catch(err => {
+      return res.status(500).json({ error: err.code });
+    });
+});
+
 exports.api = functions.region("europe-west1").https.onRequest(app);
